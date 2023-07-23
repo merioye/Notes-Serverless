@@ -18,7 +18,7 @@ cognitoUserPool:
     UserPoolName: notesUserPool-${self:provider.stage}
 
 cognitoUserPoolWebClient:
-  Type: AWS::Cognito:UserPoolClient
+  Type: AWS::Cognito::UserPoolClient
   Properties:
     UserPoolId: !Ref cognitoUserPool
     ClientName: web-${self:provider.stage}
@@ -41,7 +41,7 @@ cognitoUserPoolWebClient:
       - COGNITO
 
 cognitoUserPoolDomain:
-  Type: AWS::Cognito:UserPoolDomain
+  Type: AWS::Cognito::UserPoolDomain
   Properties:
     UserPoolId: !Ref cognitoUserPool
     Domain: myserverlessnotescd-${self:provider.stage}

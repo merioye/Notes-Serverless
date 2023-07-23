@@ -7,6 +7,11 @@ provider:
   runtime: nodejs16.x
   versionFunctions: false
   stage: ${opt:stage, 'dev'}
+  httpApi:
+    authorizers:
+      lambdaAuthorizer:
+        type: request
+        functionName: authorizer
   environment:
     NOTES_TABLE_NAME: !Ref notesTable
 
@@ -26,12 +31,13 @@ functions:
       - httpApi:
           path: /notes
           method: post
+          authorizer:
+            name: lambdaAuthorizer
     iamRoleStatements:
       - Effect: "Allow"
         Action:
           - dynamodb:PutItem
         Resource: !GetAtt notesTable.Arn
-    authorizer: authorizer
   getAllNotes:
     handler: src/handler.getAllNotes
     memorySize: 128
@@ -45,10 +51,6 @@ functions:
         Action:
           - dynamodb:Scan
         Resource: !GetAtt notesTable.Arn
-    authorizer:
-      name: userpool_authorizer
-      type: COGNITO_USER_POOLS
-      arn: !GetAtt cognitoUserPool.Arn
   updateNote:
     handler: src/handler.updateNote
     memorySize: 128
@@ -57,12 +59,13 @@ functions:
       - httpApi:
           path: /notes/{id}
           method: put
+          authorizer:
+            name: lambdaAuthorizer
     iamRoleStatements:
       - Effect: "Allow"
         Action:
           - dynamodb:UpdateItem
         Resource: !GetAtt notesTable.Arn
-    authorizer: authorizer
   deleteNote:
     handler: src/handler.deleteNote
     memorySize: 128
@@ -71,12 +74,13 @@ functions:
       - httpApi:
           path: /notes/{id}
           method: delete
+          authorizer:
+            name: lambdaAuthorizer
     iamRoleStatements:
       - Effect: "Allow"
         Action:
           - dynamodb:DeleteItem
         Resource: !GetAtt notesTable.Arn
-    authorizer: authorizer
   getNote:
     handler: src/handler.getNote
     memorySize: 128
@@ -90,10 +94,6 @@ functions:
         Action:
           - dynamodb:GetItem
         Resource: !GetAtt notesTable.Arn
-    authorizer:
-      name: userpool_authorizer
-      type: COGNITO_USER_POOLS
-      arn: !GetAtt cognitoUserPool.Arn
 
 resources:
   Resources: ${file(resources.yml)}

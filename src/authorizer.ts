@@ -1,5 +1,5 @@
 import {
-  APIGatewayTokenAuthorizerEvent,
+  APIGatewayRequestAuthorizerEventV2,
   APIGatewayAuthorizerCallback,
   AuthResponse,
 } from "aws-lambda";
@@ -35,18 +35,18 @@ const generatePolicy = ({ principalId, effect, resource }: PolicyOptions) => {
 };
 
 export const handler = async (
-  event: APIGatewayTokenAuthorizerEvent,
+  event: APIGatewayRequestAuthorizerEventV2,
   _: any,
   cb: APIGatewayAuthorizerCallback
 ) => {
   try {
-    const token = event.authorizationToken;
+    const token = event.headers.authorization;
     await jwtVerifier.verify(token);
 
     const policy = generatePolicy({
       principalId: "user",
       effect: "Allow",
-      resource: event.methodArn,
+      resource: event.routeArn,
     });
     cb(null, policy);
   } catch (err) {
