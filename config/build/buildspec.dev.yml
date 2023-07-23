@@ -1,0 +1,26 @@
+version: 0.2
+
+phases:
+  install:
+    on-failure: ABORT
+    runtime-versions:
+      nodejs: 16
+    commands:
+      - echo Installing Serverless CLI
+      - npm install -g serverless
+      - echo Installing npm dependencies
+      - npm install
+  build:
+    on-failure: ABORT
+    commands:
+      - echo Running Tests
+      - npm test
+      - echo Packaging the application
+      - serverless package --package artifacts --stage dev
+artifacts:
+  files:
+    - artifacts/*
+  name: notes-api-artifacts
+cache:
+  paths:
+    - node_modules/**/*

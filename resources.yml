@@ -1,0 +1,47 @@
+notesTable:
+  Type: AWS::DynamoDB::Table
+  Properties:
+    TableName: notes-${self:provider.stage}
+    AttributeDefinitions:
+      - AttributeName: id
+        AttributeType: N
+    KeySchema:
+      - AttributeName: id
+        KeyType: HASH
+    ProvisionedThroughput:
+      ReadCapacityUnits: 1
+      WriteCapacityUnits: 1
+
+cognitoUserPool:
+  Type: AWS::Cognito::UserPool
+  Properties:
+    UserPoolName: notesUserPool-${self:provider.stage}
+
+cognitoUserPoolWebClient:
+  Type: AWS::Cognito:UserPoolClient
+  Properties:
+    UserPoolId: !Ref cognitoUserPool
+    ClientName: web-${self:provider.stage}
+    AllowedOAuthFlows:
+      - implicit
+    AllowedOAuthFlowsUserPoolClient: true
+    AllowedOAuthScopes:
+      - phone
+      - email
+      - openid
+      - profile
+    ExplicitAuthFlows:
+      - ALLOW_ADMIN_USER_PASSWORD_AUTH
+      - ALLOW_REFRESH_TOKEN_AUTH
+      - ALLOW_CUSTOM_AUTH
+      - ALLOW_USER_SRP_AUTH
+    CallbackURLs:
+      - http://localhost:3000
+    SupportedIdentityProviders:
+      - COGNITO
+
+cognitoUserPoolDomain:
+  Type: AWS::Cognito:UserPoolDomain
+  Properties:
+    UserPoolId: !Ref cognitoUserPool
+    Domain: myserverlessnotescd-${self:provider.stage}

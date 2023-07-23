@@ -1,0 +1,104 @@
+service: notes-api
+frameworkVersion: "3"
+
+provider:
+  name: aws
+  region: us-east-1
+  runtime: nodejs16.x
+  versionFunctions: false
+  stage: ${opt:stage, 'dev'}
+  environment:
+    NOTES_TABLE_NAME: !Ref notesTable
+
+functions:
+  authorizer:
+    handler: src/authorizer.handler
+    memorySize: 128
+    timeout: 5
+    environment:
+      COGNITO_USERPOOL_ID: !Ref cognitoUserPool
+      COGNITO_USERPOOL_WEB_CLIENT_ID: !Ref cognitoUserPoolWebClient
+  createNote:
+    handler: src/handler.createNote
+    memorySize: 128
+    timeout: 5
+    events:
+      - httpApi:
+          path: /notes
+          method: post
+    iamRoleStatements:
+      - Effect: "Allow"
+        Action:
+          - dynamodb:PutItem
+        Resource: !GetAtt notesTable.Arn
+    authorizer: authorizer
+  getAllNotes:
+    handler: src/handler.getAllNotes
+    memorySize: 128
+    timeout: 5
+    events:
+      - httpApi:
+          path: /notes
+          method: get
+    iamRoleStatements:
+      - Effect: "Allow"
+        Action:
+          - dynamodb:Scan
+        Resource: !GetAtt notesTable.Arn
+    authorizer:
+      name: userpool_authorizer
+      type: COGNITO_USER_POOLS
+      arn: !GetAtt cognitoUserPool.Arn
+  updateNote:
+    handler: src/handler.updateNote
+    memorySize: 128
+    timeout: 5
+    events:
+      - httpApi:
+          path: /notes/{id}
+          method: put
+    iamRoleStatements:
+      - Effect: "Allow"
+        Action:
+          - dynamodb:UpdateItem
+        Resource: !GetAtt notesTable.Arn
+    authorizer: authorizer
+  deleteNote:
+    handler: src/handler.deleteNote
+    memorySize: 128
+    timeout: 5
+    events:
+      - httpApi:
+          path: /notes/{id}
+          method: delete
+    iamRoleStatements:
+      - Effect: "Allow"
+        Action:
+          - dynamodb:DeleteItem
+        Resource: !GetAtt notesTable.Arn
+    authorizer: authorizer
+  getNote:
+    handler: src/handler.getNote
+    memorySize: 128
+    timeout: 5
+    events:
+      - httpApi:
+          path: /notes/{id}
+          method: get
+    iamRoleStatements:
+      - Effect: "Allow"
+        Action:
+          - dynamodb:GetItem
+        Resource: !GetAtt notesTable.Arn
+    authorizer:
+      name: userpool_authorizer
+      type: COGNITO_USER_POOLS
+      arn: !GetAtt cognitoUserPool.Arn
+
+resources:
+  Resources: ${file(resources.yml)}
+
+plugins:
+  - serverless-offline
+  - serverless-iam-roles-per-function
+  - serverless-plugin-typescript
