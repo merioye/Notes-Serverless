@@ -45,3 +45,48 @@ cognitoUserPoolDomain:
   Properties:
     UserPoolId: !Ref cognitoUserPool
     Domain: myserverlessnotescd-${self:provider.stage}
+
+notesApiCloudFrontCachePolicy:
+  Type: AWS::CloudFront::CachePolicy
+  Properties:
+    CachePolicyConfig:
+      DefaultTTL: 300
+      MaxTTL: 31536000
+      MinTTL: 60
+      Name: notesApiCloudFrontCachePolicy-${self:provider.stage}
+      ParametersInCacheKeyAndForwardedToOrigin:
+        CookiesConfig:
+          CookieBehavior: none
+        EnableAcceptEncodingBrotli: true
+        EnableAcceptEncodingGzip: true
+        HeadersConfig:
+          HeaderBehavior: whitelist
+          Headers:
+            - Authorization
+        QueryStringsConfig:
+          QueryStringBehavior: none
+
+cloudFrontDistribution:
+  Type: AWS::CloudFront::Distribution
+  Properties:
+    DistributionConfig:
+      Enabled: true
+      DefaultCacheBehavior:
+        TargetOriginId: notesApiOrigin
+        CachePolicyId: !Ref notesApiCloudFrontCachePolicy
+        ViewerProtocolPolicy: https-only
+      CacheBehaviors:
+        - PathPattern: /dev/*
+          TargetOriginId: notesApiOrigin
+          CachePolicyId: !Ref notesApiCloudFrontCachePolicy
+          ViewerProtocolPolicy: https-only
+      Origins:
+        - Id: notesApiOrigin
+          DomainName: !Join
+            - "."
+            - - !Ref HttpApi
+              - "execute-api"
+              - ${aws:region}
+              - "amazonaws.com"
+          CustomOriginConfig:
+            OriginProtocolPolicy: https-only

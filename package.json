@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "serverless offline",
     "deploy": "serverless deploy --verbose",
+    "remove": "serverless remove",
     "test": "echo \"All tests passed!\""
   },
   "keywords": [],
